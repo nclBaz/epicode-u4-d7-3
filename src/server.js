@@ -3,6 +3,7 @@ import express from "express" // NEW IMPORT SYNTAX (do not forget to add type: "
 import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import { join } from "path"
+import createHttpError from "http-errors"
 import usersRouter from "./api/users/index.js"
 import booksRouter from "./api/books/index.js"
 import filesRouter from "./api/files/index.js"
@@ -17,10 +18,21 @@ const server = express()
 
 const port = process.env.PORT
 
-const mongoConnectionString = process.env.MONGO_CONNECTION_STRING
-const emailToken = process.env.EMAIL_TOKEN
-
 const publicFolderPath = join(process.cwd(), "./public")
+
+// ************************************** CORS *******************
+
+/* CROSS-ORIGIN RESOURCE SHARING
+
+Cross-Origin Requests:
+
+1. FE=http://localhost:3000 and BE=http://localhost:3001 <-- 2 different port numbers they are 2 different origins
+2. FE=https://myfe.com and BE=https://mybe.com <-- 2 different domains they are 2 different origins
+3. FE=https://domain.com and BE=http://domain.com <-- 2 different protocols they are 2 different origins
+
+*/
+
+// ***************************************************************
 
 // ***************** MIDDLEWARES ********************
 
@@ -40,8 +52,24 @@ const loggerMiddleware = (req, res, next) => {
   }
 } */
 
+const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL]
+
+const corsOpts = {
+  origin: (origin, corsNext) => {
+    console.log("CURRENT ORIGIN: ", origin)
+    if (whitelist.indexOf(origin) !== -1) {
+      // If current origin is in the whitelist you can move on
+      corsNext(null, true)
+    } else {
+      // If it is not --> error
+      corsNext(createHttpError(400, `Origin ${origin} is not in the whitelist!`))
+    }
+  },
+}
+
 server.use(express.static(publicFolderPath))
-server.use(cors()) // Just to let FE communicate with BE successfully
+server.use(cors(corsOpts))
+
 server.use(loggerMiddleware)
 /* server.use(policeOfficerMiddleware) */
 server.use(express.json()) // If you do not add this line here BEFORE the endpoints, all req.body will be UNDEFINED
