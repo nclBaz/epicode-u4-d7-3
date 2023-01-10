@@ -15,7 +15,10 @@ import {
 
 const server = express()
 
-const port = 3001
+const port = process.env.PORT
+
+const mongoConnectionString = process.env.MONGO_CONNECTION_STRING
+const emailToken = process.env.EMAIL_TOKEN
 
 const publicFolderPath = join(process.cwd(), "./public")
 
