@@ -41,7 +41,6 @@ booksRouter.get("/", async (req, res, next) => {
     // throw new Error("KABOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM")
     const booksArray = await getBooks()
     const usersArray = await getUsers()
-    console.log("BOOKS ARRAY: ", booksArray)
     if (req.query && req.query.category) {
       const filteredBooks = booksArray.filter(book => book.category === req.query.category)
       res.send(filteredBooks)
